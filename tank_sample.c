@@ -13,59 +13,42 @@
 #include <time.h>
 
 
-int main(void) {	
-
-	//Ú‘±‚·‚éƒT[ƒo‚Ìî•ñ‚Ì\‘¢‘Ì‚ğ—pˆÓ
+int main(void) {
 
 	struct sockaddr_in dest;
 
 	memset(&dest, 0, sizeof(dest));
 
-	//ƒT[ƒo‚Ìî•ñ‚ğ“ü—Í
-
 	char destination[20];
-	printf("adress=");
-	scanf("%s",destination);
-	dest.sin_addr.s_addr = inet_addr(destination);
+	// printf("adress=");
+	// scanf("%s",destination);
+	// dest.sin_addr.s_addr = inet_addr(destination);
 
 	char port[6];
-	printf("port=");
-	scanf("%s",port);
-	dest.sin_port = htons(atoi(port));
+	// printf("port=");
+	// scanf("%s",port);
+	// dest.sin_port = htons(atoi(port));
 
 
-	//char destination[] = "127.0.0.1";  //ƒAƒhƒŒƒX
+	char destination[] = "127.0.0.1";
 
-	//dest.sin_port = htons(12345);  //ƒ|[ƒg”Ô†
+	dest.sin_port = htons(11000);
 
 	dest.sin_family = AF_INET;
 
-	//dest.sin_addr.s_addr = inet_addr(destination);
+	dest.sin_addr.s_addr = inet_addr(destination);
 
-
-
-	//ƒ\ƒPƒbƒg’ÊM‚Ì€”õE¶¬
 
 	WSADATA data;
-
 	WSAStartup(MAKEWORD(2, 0), &data);
-
 	SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
 
-
-
-	//ƒT[ƒo‚Ö‚ÌÚ‘±
-
 	if (connect(s, (struct sockaddr *) &dest, sizeof(dest))) {
-
-		printf("%s‚ÉÚ‘±‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½\n", destination);
-
+		printf("%sï¿½ÉÚ‘ï¿½ï¿½Å‚ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½\n", destination);
 		return -1;
-
 	}
 
-	printf("%s‚ÉÚ‘±‚µ‚Ü‚µ‚½\n", destination);
-
+	printf("%sï¿½ÉÚ‘ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½\n", destination);
 
 	//char msg[] = "Hello Server!";
 	//char buffer[1024];
@@ -75,168 +58,94 @@ int main(void) {
 	char move2[] = "move:500\n";
 	char move3[] = "move:700\n";
 	char cannon1[] = "cannon:300\n";
-	char cannon2[] = "cannon:500\n";	
+	char cannon2[] = "cannon:500\n";
 	char cannon3[] = "cannon:700\n";
 	char search1[] = "search:300\n";
-	char search2[] = "search:500\n";	
+	char search2[] = "search:500\n";
 	char search3[] = "search:700\n";
 	char state1[] = "state:hp\n";
-	char state2[] = "state:hight\n";	
-	char state3[] = "state:cannon\n";	
-	
-	//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—MF–¼‘O‚Ì‘—M
+	char state2[] = "state:hight\n";
+	char state3[] = "state:cannon\n";
+
 	send(s, name, strlen(name), 0);
-	
-	//ƒT[ƒo‚©‚çƒf[ƒ^‚ğóMFname‚Ì•ÔM ‚ğó‚¯æ‚é
+
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("¨ %s\n\n", buffer);
+	printf("ï¿½ï¿½ %s\n\n", buffer);
 
-	//ƒT[ƒo‚©‚çƒf[ƒ^‚ğóMFSTART ‚ğó‚¯æ‚é
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("¨ %s\n\n", buffer);
-
+	printf("ï¿½ï¿½ %s\n\n", buffer);
 
 	int flag = 0;
 	time_t t = time(NULL);
 	srand(t);
 
 while(1){
-	
+
 	flag = rand() % 3;
 
-
 	if(flag==0){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
 		send(s, move1, strlen(move1), 0);
-		
 	}else if(flag==1){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
 		send(s, move2, strlen(move2), 0);
-		
 	}else if(flag==2){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
+		//ï¿½Tï¿½[ï¿½oï¿½Éƒfï¿½[ï¿½^ï¿½ğ‘—M ï¿½Ú“ï¿½ï¿½wï¿½ï¿½
 		send(s, move3, strlen(move3), 0);
-		
 	}
 
-
-	//ƒT[ƒo‚©‚ç•ÔMƒf[ƒ^‚ğóM
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("¨ %s", buffer);
-	
-	
+	printf("ï¿½ï¿½ %s", buffer);
 	Sleep(1000*(rand()%3+1));
-	
-	
-	
+
 	flag = rand() % 3;
-	
 
 	if(flag==0){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
 		send(s, cannon1, strlen(cannon1), 0);
-		
 	}else if(flag==1){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
 		send(s, cannon2, strlen(cannon2), 0);
-		
 	}else if(flag==2){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
 		send(s, cannon3, strlen(cannon3), 0);
-		
 	}
 
-
-	//ƒT[ƒo‚©‚ç•ÔMƒf[ƒ^‚ğóM
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("¨ %s", buffer);
+	printf("ï¿½ï¿½ %s", buffer);
 
 	Sleep(1000*(rand()%3+1));
 
-
 	if(flag==0){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
 		send(s, search1, strlen(search1), 0);
-		
 	}else if(flag==1){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
 		send(s, search2, strlen(search2), 0);
-		
 	}else if(flag==2){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
 		send(s, search3, strlen(search3), 0);
-		
 	}
-	
-	//ƒT[ƒo‚©‚ç•ÔMƒf[ƒ^‚ğóM
-	memset(buffer, '\0', sizeof(buffer));
-	recv(s, buffer, sizeof(buffer), 0);
-	printf("¨ %s", buffer);
-	
-	if(flag==0){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
-		send(s, state1, strlen(state1), 0);
-		
-	}else if(flag==1){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
-		send(s, state2, strlen(state2), 0);
-		
-	}else if(flag==2){
-		
-		//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M ˆÚ“®w—ß
-		send(s, state3, strlen(state3), 0);
-		
-	}
-	
-	//ƒT[ƒo‚©‚ç•ÔMƒf[ƒ^‚ğóM
-	memset(buffer, '\0', sizeof(buffer));
-	recv(s, buffer, sizeof(buffer), 0);
-	printf("¨ %s", buffer);
 
+	memset(buffer, '\0', sizeof(buffer));
+	recv(s, buffer, sizeof(buffer), 0);
+	printf("ï¿½ï¿½ %s", buffer);
+
+	if(flag==0){
+		send(s, state1, strlen(state1), 0);
+	}else if(flag==1){
+		send(s, state2, strlen(state2), 0);
+	}else if(flag==2){
+		send(s, state3, strlen(state3), 0);
+	}
+
+	memset(buffer, '\0', sizeof(buffer));
+	recv(s, buffer, sizeof(buffer), 0);
+	printf("ï¿½ï¿½ %s", buffer);
 }
 
-
-
-
-
-
-
-	//ƒT[ƒo‚Éƒf[ƒ^‚ğ‘—M
-
 	//send(s, "Hello Server!", strlen(msg), 0);
-
-
-
-	//ƒT[ƒo‚©‚çƒf[ƒ^‚ğóM
-
 	//recv(s, buffer, 1024, 0);
-
-	//printf("¨ %s\n\n", buffer);
-
-
-
-	// Windows ‚Å‚Ìƒ\ƒPƒbƒg‚ÌI—¹
+	//printf("ï¿½ï¿½ %s\n\n", buffer);
 
 	closesocket(s);
-
 	WSACleanup();
-
-
 
 	return 0;
 
