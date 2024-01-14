@@ -19,12 +19,12 @@ int main(void) {
 
 	memset(&dest, 0, sizeof(dest));
 
-	char destination[20];
+	// char destination[20];
 	// printf("adress=");
 	// scanf("%s",destination);
 	// dest.sin_addr.s_addr = inet_addr(destination);
 
-	char port[6];
+	// char port[6];
 	// printf("port=");
 	// scanf("%s",port);
 	// dest.sin_port = htons(atoi(port));
@@ -44,11 +44,11 @@ int main(void) {
 	SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (connect(s, (struct sockaddr *) &dest, sizeof(dest))) {
-		printf("%s�ɐڑ��ł��܂���ł���\n", destination);
+		printf("%s: was disconnected!!\n", destination);
 		return -1;
 	}
 
-	printf("%s�ɐڑ����܂���\n", destination);
+	printf("%s: was connected!!\n", destination);
 
 	//char msg[] = "Hello Server!";
 	//char buffer[1024];
@@ -71,11 +71,11 @@ int main(void) {
 
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("�� %s\n\n", buffer);
+	printf("%s\n\n", buffer);
 
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("�� %s\n\n", buffer);
+	printf("%s\n\n", buffer);
 
 	int flag = 0;
 	time_t t = time(NULL);
@@ -90,13 +90,12 @@ while(1){
 	}else if(flag==1){
 		send(s, move2, strlen(move2), 0);
 	}else if(flag==2){
-		//�T�[�o�Ƀf�[�^�𑗐M �ړ��w��
 		send(s, move3, strlen(move3), 0);
 	}
 
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("�� %s", buffer);
+	printf("%s", buffer);
 	Sleep(1000*(rand()%3+1));
 
 	flag = rand() % 3;
@@ -111,7 +110,7 @@ while(1){
 
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("�� %s", buffer);
+	printf("%s", buffer);
 
 	Sleep(1000*(rand()%3+1));
 
@@ -125,7 +124,7 @@ while(1){
 
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("�� %s", buffer);
+	printf("%s", buffer);
 
 	if(flag==0){
 		send(s, state1, strlen(state1), 0);
@@ -137,7 +136,7 @@ while(1){
 
 	memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("�� %s", buffer);
+	printf("%s", buffer);
 }
 
 	//send(s, "Hello Server!", strlen(msg), 0);
