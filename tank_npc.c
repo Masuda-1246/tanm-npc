@@ -7,18 +7,93 @@
 #include <unistd.h>
 #include <time.h>
 
+typedef struct {
+    int x;
+    int y;
+    char *name;
+} Position;
 
-void AttackByY(SOCKET s, int y) {
+void attackByY(SOCKET s, int y) {
     char cannon[20];
+    char buffer[1024];
     memset(cannon, '\0', sizeof(cannon));
     sprintf(cannon, "cannon:%d\n", y);
     send(s, cannon, strlen(cannon), 0);
+    memset(buffer, '\0', sizeof(buffer));
+	recv(s, buffer, sizeof(buffer), 0);
+	printf("%s", buffer);
 }
 
-void search(SOCKET s, int y) {
+void goToY(SOCKET s, int y) {
+    char move[20];
+    char buffer[1024];
+    memset(move, '\0', sizeof(move));
+    sprintf(move, "move:%d\n", y);
+    send(s, move, strlen(move), 0);
+    memset(buffer, '\0', sizeof(buffer));
+	recv(s, buffer, sizeof(buffer), 0);
+	printf("%s", buffer);
+}
+
+void search(SOCKET s, int y, Position *pos) {
     char search[20];
+    char buffer[1024];
+    memset(search, '\0', sizeof(search));
+    memset(buffer, '\0', sizeof(buffer));
     sprintf(search, "search:%d\n", y);
     send(s, search, strlen(search), 0);
+    recv(s, buffer, sizeof(buffer), 0);
+    char *p = strtok(buffer, ":");
+    p = strtok(NULL, ":");
+    if (strcmp(p, "null") == 1) {
+        pos->x = 0;
+        pos->y = 0;
+        strcpy(pos->name, "null");
+    } else {
+        char *ps = strtok(p, ",");
+        pos->x = atoi(ps);
+        p = strtok(NULL, ",");
+        pos->y = atoi(p);
+        p = strtok(NULL, ",");
+        p[strlen(p) - 1] = '\0';
+        strcpy(pos->name, p);
+    }
+    printf("%d: x: %d, y: %d, name: %s\n", y, pos->x, pos->y, pos->name);
+}
+
+int bestHeight(SOCKET s) {
+    int i = 0;
+    Position pos;
+    Position* p = &pos;
+    int bestList[11] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (i = 1; i < 10; i++) {
+        search(s, i * 100, p);
+        if (strcmp(p -> name, "cannon") == 0) {
+            int x = p -> x;
+            x = x / 10;
+            int y = p -> y;
+            y = y / 100;
+            bestList[y-1] += x/2;
+            bestList[y] += x;
+            bestList[y+1] += x/2;
+        } else if (strcmp(p -> name, "enemy") == 0) {
+            attackByY(s, p -> y);
+            Sleep(1000);
+        }
+    }
+    int min = 100000;
+    int minIndex = 0;
+    for (i = 1; i < 10; i++) {
+        if (bestList[i] < min) {
+            min = bestList[i];
+            minIndex = i;
+        }
+    }
+    for (i = 1; i < 11; i++) {
+        printf("%d: %d ", i, bestList[i]);
+    }
+    printf("\n");
+    return minIndex * 100;
 }
 
 int main(void) {
@@ -57,22 +132,12 @@ int main(void) {
 
 	printf("%s: was connected!!\n", destination);
 
-	//char msg[] = "Hello Server!";
-	//char buffer[1024];
 	char buffer[1024];
 	char name[] = "name:DENDEN\n";
-	char move1[] = "move:300\n";
-	char move2[] = "move:500\n";
-	char move3[] = "move:700\n";
-	char cannon1[] = "cannon:300\n";
-	char cannon2[] = "cannon:500\n";
-	char cannon3[] = "cannon:700\n";
-	char search1[] = "search:300\n";
-	char search2[] = "search:500\n";
-	char search3[] = "search:700\n";
-	char state1[] = "state:hp\n";
-	char state2[] = "state:hight\n";
-	char state3[] = "state:cannon\n";
+    int i = 0;
+    int time_count = 0;
+    int pre_best_y = -1;
+    int best_y = -1;
 
 	send(s, name, strlen(name), 0);
 
@@ -87,77 +152,15 @@ int main(void) {
 	int flag = 0;
 	time_t t = time(NULL);
 	srand(t);
-    AttackByY(s, 300);
-    Sleep(1000);
-    AttackByY(s, 400);
-    Sleep(1000);
-    AttackByY(s, 500);
-    Sleep(1000);
-    AttackByY(s, 600);
-    Sleep(1000);
-    AttackByY(s, 700);
 
-while(1){
-
-	flag = rand() % 3;
-
-	if(flag==0){
-		send(s, move1, strlen(move1), 0);
-	}else if(flag==1){
-		send(s, move2, strlen(move2), 0);
-	}else if(flag==2){
-		send(s, move3, strlen(move3), 0);
-	}
-
-	memset(buffer, '\0', sizeof(buffer));
-	recv(s, buffer, sizeof(buffer), 0);
-	printf("%s", buffer);
-	// Sleep(100*(rand()%3+1));
-
-	flag = rand() % 3;
-
-	if(flag==0){
-		send(s, cannon1, strlen(cannon1), 0);
-	}else if(flag==1){
-		send(s, cannon2, strlen(cannon2), 0);
-	}else if(flag==2){
-		send(s, cannon3, strlen(cannon3), 0);
-	}
-
-	memset(buffer, '\0', sizeof(buffer));
-	recv(s, buffer, sizeof(buffer), 0);
-	printf("%s", buffer);
-
-	// Sleep(100*(rand()%3+1));
-
-	if(flag==0){
-		send(s, search1, strlen(search1), 0);
-	}else if(flag==1){
-		send(s, search2, strlen(search2), 0);
-	}else if(flag==2){
-		send(s, search3, strlen(search3), 0);
-	}
-
-	memset(buffer, '\0', sizeof(buffer));
-	recv(s, buffer, sizeof(buffer), 0);
-	printf("%s", buffer);
-
-	if(flag==0){
-		send(s, state1, strlen(state1), 0);
-	}else if(flag==1){
-		send(s, state2, strlen(state2), 0);
-	}else if(flag==2){
-		send(s, state3, strlen(state3), 0);
-	}
-
-	memset(buffer, '\0', sizeof(buffer));
-	recv(s, buffer, sizeof(buffer), 0);
-	printf("%s", buffer);
-}
-
-	//send(s, "Hello Server!", strlen(msg), 0);
-	//recv(s, buffer, 1024, 0);
-	//printf("�� %s\n\n", buffer);
+    while(1) {
+        printf("time_count: %d ------------------\n", time_count++);
+        best_y = bestHeight(s);
+        if (best_y != pre_best_y) {
+            goToY(s, best_y);
+            pre_best_y = best_y;
+        }
+    }
 
 	closesocket(s);
 	WSACleanup();
