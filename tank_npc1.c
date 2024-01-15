@@ -35,23 +35,6 @@ void goToY(SOCKET s, int y) {
 	printf("%s", buffer);
 }
 
-void getMyY(SOCKET s, Position *pos) {
-    char my[20];
-    char buffer[1024];
-    memset(my, '\0', sizeof(my));
-    memset(buffer, '\0', sizeof(buffer));
-    sprintf(my, "state:hight\n");
-    send(s, my, strlen(my), 0);
-    recv(s, buffer, sizeof(buffer), 0);
-    printf("%s", buffer);
-    char *p = strtok(buffer, ":");
-    p = strtok(NULL, ":");
-    pos->x = 0;
-    pos->y = atoi(p);
-    pos->name = "my";
-    printf("my: x: %d, y: %d, name: %s\n", pos->x, pos->y, pos->name);
-}
-
 void search(SOCKET s, int y, Position *pos) {
     char search[20];
     char buffer[1024];
@@ -115,28 +98,15 @@ int bestHeight(SOCKET s) {
     return minIndex * 100;
 }
 
+
 int main(void) {
 
 	struct sockaddr_in dest;
-
 	memset(&dest, 0, sizeof(dest));
 
-	// char destination[20];
-	// printf("adress=");
-	// scanf("%s",destination);
-	// dest.sin_addr.s_addr = inet_addr(destination);
-
-	// char port[6];
-	// printf("port=");
-	// scanf("%s",port);
-	// dest.sin_port = htons(atoi(port));
-
 	char destination[] = "127.0.0.1";
-
 	dest.sin_port = htons(11000);
-
 	dest.sin_family = AF_INET;
-
 	dest.sin_addr.s_addr = inet_addr(destination);
 
 
@@ -150,14 +120,6 @@ int main(void) {
 	}
 
 	printf("%s: was connected!!\n", destination);
-
-	char buffer[1024];
-	char name[] = "name:DENDEN\n";
-    int i = 0;
-    int time_count = 0;
-    int pre_best_y = -1;
-    int best_y = -1;
-
 	send(s, name, strlen(name), 0);
 
 	memset(buffer, '\0', sizeof(buffer));
@@ -168,20 +130,27 @@ int main(void) {
 	recv(s, buffer, sizeof(buffer), 0);
 	printf("%s\n\n", buffer);
 
-	int flag = 0;
 	time_t t = time(NULL);
 	srand(t);
 
-    while(1) {
-        printf("time_count: %d ------------------\n", time_count++);
-        best_y = bestHeight(s);
-        if (best_y != pre_best_y) {
-            goToY(s, best_y);
-            pre_best_y = best_y;
-        }
+    goToY(s, 100);
+	int search_val = 1000;
+    Position myPos;
+
+    while(1){
+        bestHeight(s);
         Position pos;
         Position* p = &pos;
         getMyY(s, p);
+        int y = p -> y;
+        printf("%d\n", y);
+        if (y < 150) {
+            goToY(s, 900);
+            flag_100 = 1000;
+        } else if (y > 850) {
+            goToY(s, 100);
+            flag_100 = 0;
+        }
     }
 
 	closesocket(s);
