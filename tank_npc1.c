@@ -13,7 +13,8 @@ typedef struct {
     char *name;
 } Position;
 
-void attackByY(SOCKET s, int y) {
+void attackToY(SOCKET s, int y) {
+    // printf("attackToY: %d\n", y);
     char cannon[20];
     char buffer[1024];
     memset(cannon, '\0', sizeof(cannon));
@@ -21,10 +22,10 @@ void attackByY(SOCKET s, int y) {
     send(s, cannon, strlen(cannon), 0);
     memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("%s", buffer);
 }
 
 void goToY(SOCKET s, int y) {
+    // printf("goToY: %d\n", y);
     char move[20];
     char buffer[1024];
     memset(move, '\0', sizeof(move));
@@ -32,10 +33,10 @@ void goToY(SOCKET s, int y) {
     send(s, move, strlen(move), 0);
     memset(buffer, '\0', sizeof(buffer));
 	recv(s, buffer, sizeof(buffer), 0);
-	printf("%s", buffer);
 }
 
 void search(SOCKET s, int y, Position *pos) {
+    // printf("search: %d\n", y);
     char search[20];
     char buffer[1024];
     memset(search, '\0', sizeof(search));
@@ -43,10 +44,8 @@ void search(SOCKET s, int y, Position *pos) {
     sprintf(search, "search:%d\n", y);
     send(s, search, strlen(search), 0);
     recv(s, buffer, sizeof(buffer), 0);
-    printf("%s", buffer);
     char *p = strtok(buffer, ":");
     p = strtok(NULL, ":");
-    printf("strcmp %d\n", strcmp(p, "null"));
     if (strcmp(p, "null") == 1) {
         pos->x = 0;
         pos->y = 0;
@@ -60,23 +59,24 @@ void search(SOCKET s, int y, Position *pos) {
         p[strlen(p) - 1] = '\0';
         pos->name = p;
     }
-    printf("%d: x: %d, y: %d, name: %s\n", y, pos->x, pos->y, pos->name);
 }
 
-int bestHeight(SOCKET s) {
+void attackToEnemy(SOCKET s) {
+    // printf("attackToEnemy\n");
     int i = 0;
     Position pos;
     Position* p = &pos;
-    for (i = 0; i < 11; i++) {
+    for (i = 1; i < 10; i++) {
         search(s, i * 100, p);
         if (strcmp(p -> name, "enemy") == 0) {
-            attackByY(s, p -> y);
+            attackToY(s, p -> y);
+            break;
         }
     }
-    return 1;
 }
 
 int getMyHp(SOCKET s) {
+    // printf("getMyHp\n");
     char my[20];
     char buffer[1024];
     memset(my, '\0', sizeof(my));
@@ -84,13 +84,13 @@ int getMyHp(SOCKET s) {
     sprintf(my, "state:hp\n");
     send(s, my, strlen(my), 0);
     recv(s, buffer, sizeof(buffer), 0);
-    printf("%s", buffer);
     char *p = strtok(buffer, ":");
     p = strtok(NULL, ":");
     return atoi(p);
 }
 
-void getMyY(SOCKET s, Position *pos) {
+int getMyY(SOCKET s) {
+    // printf("getMyY\n");
     char my[20];
     char buffer[1024];
     memset(my, '\0', sizeof(my));
@@ -98,17 +98,14 @@ void getMyY(SOCKET s, Position *pos) {
     sprintf(my, "state:hight\n");
     send(s, my, strlen(my), 0);
     recv(s, buffer, sizeof(buffer), 0);
-    printf("%s", buffer);
     char *p = strtok(buffer, ":");
     p = strtok(NULL, ":");
-    pos->x = 0;
-    pos->y = atoi(p);
-    pos->name = "my";
-    printf("my: x: %d, y: %d, name: %s\n", pos->x, pos->y, pos->name);
+    return atoi(p);
 }
 
 
 void escape(SOCKET s, int y, int flag_0) {
+    // printf("escape: %d\n", y);
     char move[20];
     char buffer[1024];
     if (flag_0) y -= 50;
@@ -119,6 +116,26 @@ void escape(SOCKET s, int y, int flag_0) {
     memset(buffer, '\0', sizeof(buffer));
     recv(s, buffer, sizeof(buffer), 0);
     printf("%s", buffer);
+}
+
+int getCannonOnMyLine(SOCKET s, int y) {
+    // printf("getCannonOnMyLine: %d\n", y);
+    char search[20];
+    char buffer[1024];
+    memset(search, '\0', sizeof(search));
+    memset(buffer, '\0', sizeof(buffer));
+    sprintf(search, "search:%d\n", y);
+    send(s, search, strlen(search), 0);
+    recv(s, buffer, sizeof(buffer), 0);
+    char *p = strtok(buffer, ":");
+    p = strtok(NULL, ":");
+    if (strcmp(p, "null") == 1) {
+        return -100;
+    } else {
+        char *ps = strtok(p, ",");
+        ps = strtok(NULL, ",");
+        return atoi(ps);
+    }
 }
 
 int main(void) {
@@ -157,37 +174,39 @@ int main(void) {
 	time_t t = time(NULL);
 	srand(t);
 
-    goToY(s, 100);
-	int search_val = 1000;
-    Position myPos;
     int flag_0 = 0;
     int my_y = 0;
     int my_hp = 0;
     int pre_my_hp = 1;
     int flag_is_attacked = 0;
+    int flag_is_cannon_existed = 0;
+    int move_to_y = 100;
+    goToY(s, move_to_y);
 
     while(1){
-        bestHeight(s);
-        Position pos;
-        Position* p = &pos;
-        getMyY(s, p);
-        my_y = p -> y;
+        attackToEnemy(s);
+        my_y = getMyY(s);
         my_hp = getMyHp(s);
-        if (my_hp < pre_my_hp) flag_is_attacked = 1;
-        if (flag_is_attacked) {
-            escape(s, my_y, flag_0);
+        if (my_hp < pre_my_hp) {
+            flag_is_attacked = 1;
+        } else {
             flag_is_attacked = 0;
         }
-        ;
-        Position cannonPos;
-        Position* cp = &cannonPos;
-        search(s, flag_0, cp);
-        if (my_y < 150) {
-            goToY(s, 900);
-            flag_0 = 1000;
-        } else if (my_y > 850) {
-            goToY(s, 100);
-            flag_0 = 0;
+        int cannon_y_my_on_line = getCannonOnMyLine(s, flag_0);
+        int distance = abs(cannon_y_my_on_line - my_y);
+        printf("distance: %d 0: %d is_attacked: %d\n", distance, flag_0, flag_is_attacked);
+        if (distance < 90 && flag_is_attacked != 1) {
+            printf("----------stay------------\n");
+            goToY(s, my_y);
+        } else {
+            if (my_y < 150) {
+                flag_0 = 1000;
+                move_to_y = 900;
+            } else if (my_y > 850) {
+                flag_0 = 0;
+                move_to_y = 100;
+            }
+            goToY(s, move_to_y);
         }
         pre_my_hp = my_hp;
     }
