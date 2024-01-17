@@ -98,6 +98,23 @@ int bestHeight(SOCKET s) {
     return minIndex * 100;
 }
 
+void getMyY(SOCKET s, Position *pos) {
+    char my[20];
+    char buffer[1024];
+    memset(my, '\0', sizeof(my));
+    memset(buffer, '\0', sizeof(buffer));
+    sprintf(my, "state:hight\n");
+    send(s, my, strlen(my), 0);
+    recv(s, buffer, sizeof(buffer), 0);
+    printf("%s", buffer);
+    char *p = strtok(buffer, ":");
+    p = strtok(NULL, ":");
+    pos->x = 0;
+    pos->y = atoi(p);
+    pos->name = "my";
+    printf("my: x: %d, y: %d, name: %s\n", pos->x, pos->y, pos->name);
+}
+
 
 int main(void) {
 
@@ -119,6 +136,8 @@ int main(void) {
 		return -1;
 	}
 
+    char buffer[1024];
+    char name[] = "name:SAMPLE\n";
 	printf("%s: was connected!!\n", destination);
 	send(s, name, strlen(name), 0);
 
@@ -136,14 +155,16 @@ int main(void) {
     goToY(s, 100);
 	int search_val = 1000;
     Position myPos;
+    int flag_100 = 0;
 
     while(1){
-        bestHeight(s);
+        // bestHeight(s);
         Position pos;
         Position* p = &pos;
         getMyY(s, p);
         int y = p -> y;
         printf("%d\n", y);
+        search(s, flag_100, p);
         if (y < 150) {
             goToY(s, 900);
             flag_100 = 1000;
