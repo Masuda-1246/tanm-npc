@@ -67,37 +67,27 @@ int bestHeight(SOCKET s) {
     int i = 0;
     Position pos;
     Position* p = &pos;
-    // int bestList[11] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int bestList[11] = {10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10};
     for (i = 0; i < 11; i++) {
         search(s, i * 100, p);
-        if (strcmp(p -> name, "cannon") == 0) {
-            int x = p -> x;
-            x = x / 10;
-            x = 100 - x;
-            int y = p -> y;
-            y = y / 100;
-            bestList[y] += x;
-            bestList[y-1] += x/2;
-            bestList[y+1] += x/2;
-        } else if (strcmp(p -> name, "enemy") == 0) {
+        if (strcmp(p -> name, "enemy") == 0) {
             attackByY(s, p -> y);
-            // Sleep(1000);
         }
     }
-    int min = 100000;
-    int minIndex = 0;
-    for (i = 1; i < 10; i++) {
-        if (bestList[i] < min) {
-            min = bestList[i];
-            minIndex = i;
-        }
-    }
-    for (i = 1; i < 11; i++) {
-        printf("%d: %d ", i, bestList[i]);
-    }
-    printf("\n");
-    return minIndex * 100;
+    return 1;
+}
+
+int getMyHp(SOCKET s) {
+    char my[20];
+    char buffer[1024];
+    memset(my, '\0', sizeof(my));
+    memset(buffer, '\0', sizeof(buffer));
+    sprintf(my, "state:hp\n");
+    send(s, my, strlen(my), 0);
+    recv(s, buffer, sizeof(buffer), 0);
+    printf("%s", buffer);
+    char *p = strtok(buffer, ":");
+    p = strtok(NULL, ":");
+    return atoi(p);
 }
 
 void getMyY(SOCKET s, Position *pos) {
@@ -117,6 +107,19 @@ void getMyY(SOCKET s, Position *pos) {
     printf("my: x: %d, y: %d, name: %s\n", pos->x, pos->y, pos->name);
 }
 
+
+void escape(SOCKET s, int y, int flag_0) {
+    char move[20];
+    char buffer[1024];
+    if (flag_0) y -= 50;
+    else y += 50;
+    memset(move, '\0', sizeof(move));
+    sprintf(move, "move:%d\n", y);
+    send(s, move, strlen(move), 0);
+    memset(buffer, '\0', sizeof(buffer));
+    recv(s, buffer, sizeof(buffer), 0);
+    printf("%s", buffer);
+}
 
 int main(void) {
 
@@ -157,25 +160,36 @@ int main(void) {
     goToY(s, 100);
 	int search_val = 1000;
     Position myPos;
-    int flag_100 = 0;
+    int flag_0 = 0;
+    int my_y = 0;
+    int my_hp = 0;
+    int pre_my_hp = 1;
+    int flag_is_attacked = 0;
 
     while(1){
-        // bestHeight(s);
+        bestHeight(s);
         Position pos;
         Position* p = &pos;
         getMyY(s, p);
-        int y = p -> y;
-        printf("%d\n", y);
+        my_y = p -> y;
+        my_hp = getMyHp(s);
+        if (my_hp < pre_my_hp) flag_is_attacked = 1;
+        if (flag_is_attacked) {
+            escape(s, my_y, flag_0);
+            flag_is_attacked = 0;
+        }
+        ;
         Position cannonPos;
         Position* cp = &cannonPos;
-        search(s, 0, cp);
-        if (y < 150) {
+        search(s, flag_0, cp);
+        if (my_y < 150) {
             goToY(s, 900);
-            flag_100 = 1000;
-        } else if (y > 850) {
+            flag_0 = 1000;
+        } else if (my_y > 850) {
             goToY(s, 100);
-            flag_100 = 0;
+            flag_0 = 0;
         }
+        pre_my_hp = my_hp;
     }
 
 	closesocket(s);
