@@ -104,11 +104,11 @@ int getMyY(SOCKET s) {
 }
 
 
-void escape(SOCKET s, int y, int flag_0) {
+void escape(SOCKET s, int y, int destination) {
     // printf("escape: %d\n", y);
     char move[20];
     char buffer[1024];
-    if (flag_0) y -= 50;
+    if (destination) y -= 50;
     else y += 50;
     memset(move, '\0', sizeof(move));
     sprintf(move, "move:%d\n", y);
@@ -136,6 +136,19 @@ int getCannonOnMyLine(SOCKET s, int y) {
         ps = strtok(NULL, ",");
         return atoi(ps);
     }
+}
+
+int judgeStop(int c_y, int m_y, int i_a, int d) {
+    int distance = abs(c_y - m_y);
+    printf("c: %d, my: %d, dis: %d, des:%d, atk: %d\n", c_y, m_y, distance, d, i_a);
+    if (d) {
+        if (c_y < m_y) return 0;
+    } else {
+        if (c_y > m_y) return 0;
+    }
+    if (i_a) return 0;
+    if (distance > 90) return 0;
+    return 1;
 }
 
 int main(void) {
@@ -171,16 +184,16 @@ int main(void) {
 	recv(s, buffer, sizeof(buffer), 0);
 	printf("%s\n\n", buffer);
 
-	time_t t = time(NULL);
-	srand(t);
-
-    int flag_0 = 0;
+    int d = 0;
     int my_y = 0;
     int my_hp = 0;
     int pre_my_hp = 1;
     int flag_is_attacked = 0;
     int flag_is_cannon_existed = 0;
     int move_to_y = 100;
+    int is_back = 1;
+    int cannon_y_my_on_line = 0;
+    int distance = 0;
     goToY(s, move_to_y);
 
     while(1){
@@ -192,18 +205,17 @@ int main(void) {
         } else {
             flag_is_attacked = 0;
         }
-        int cannon_y_my_on_line = getCannonOnMyLine(s, flag_0);
-        int distance = abs(cannon_y_my_on_line - my_y);
-        printf("distance: %d 0: %d is_attacked: %d\n", distance, flag_0, flag_is_attacked);
-        if (distance < 90 && flag_is_attacked != 1) {
+        cannon_y_my_on_line = getCannonOnMyLine(s, d);
+        flag_is_cannon_existed =  (cannon_y_my_on_line == -100) ? 0 : 1;
+        if (flag_is_cannon_existed && judgeStop(cannon_y_my_on_line, my_y, flag_is_attacked, d)) {
             printf("----------stay------------\n");
             goToY(s, my_y);
         } else {
-            if (my_y < 150) {
-                flag_0 = 1000;
+            if (my_y < 120) {
+                d = 1000;
                 move_to_y = 900;
-            } else if (my_y > 850) {
-                flag_0 = 0;
+            } else if (my_y > 870) {
+                d = 0;
                 move_to_y = 100;
             }
             goToY(s, move_to_y);
