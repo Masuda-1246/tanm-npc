@@ -43,12 +43,14 @@ void search(SOCKET s, int y, Position *pos) {
     sprintf(search, "search:%d\n", y);
     send(s, search, strlen(search), 0);
     recv(s, buffer, sizeof(buffer), 0);
+    printf("%s", buffer);
     char *p = strtok(buffer, ":");
     p = strtok(NULL, ":");
+    printf("strcmp %d\n", strcmp(p, "null"));
     if (strcmp(p, "null") == 1) {
         pos->x = 0;
         pos->y = 0;
-        strcpy(pos->name, "null");
+        pos->name = "null";
     } else {
         char *ps = strtok(p, ",");
         pos->x = atoi(ps);
@@ -56,7 +58,7 @@ void search(SOCKET s, int y, Position *pos) {
         pos->y = atoi(p);
         p = strtok(NULL, ",");
         p[strlen(p) - 1] = '\0';
-        strcpy(pos->name, p);
+        pos->name = p;
     }
     printf("%d: x: %d, y: %d, name: %s\n", y, pos->x, pos->y, pos->name);
 }
@@ -164,7 +166,9 @@ int main(void) {
         getMyY(s, p);
         int y = p -> y;
         printf("%d\n", y);
-        search(s, flag_100, p);
+        Position cannonPos;
+        Position* cp = &cannonPos;
+        search(s, 0, cp);
         if (y < 150) {
             goToY(s, 900);
             flag_100 = 1000;
