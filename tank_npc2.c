@@ -235,7 +235,8 @@ int main(void) {
         if (my_cannon > 2) {
             enemy_y = searchEnemy(s);
             if (enemy_y != -1) {
-                int range = (enemy_y - pre_enemy_y) > 0 ? 350: -350;
+                // int range = (enemy_y - pre_enemy_y) > 0 ? 350: -350;
+                int range = 0;
                 attackToY(s, enemy_y+range);
                 Sleep(900);
                 attackToY(s, enemy_y+100+range);
