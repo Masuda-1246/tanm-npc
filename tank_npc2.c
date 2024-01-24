@@ -237,12 +237,12 @@ int main(void) {
             enemy_y = searchEnemy(s);
             if (enemy_y != -1) {
                 if (flag_is_once) {
-                    int range = (enemy_y - pre_enemy_y) > 0 ? (enemy_y - pre_enemy_y): (pre_enemy_y - enemy_y);
+                    int range = (enemy_y - pre_enemy_y) > 0 ? 100: -100;
+                    attackToY(s, enemy_y);
+                    Sleep(900);
                     attackToY(s, enemy_y+range);
                     Sleep(900);
-                    attackToY(s, enemy_y+100+range);
-                    Sleep(1000);
-                    attackToY(s, enemy_y-100+range);
+                    attackToY(s, enemy_y+2*range);
                     flag_is_once = 0;
                 }
                 flag_is_once = 1;
