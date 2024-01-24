@@ -226,6 +226,7 @@ int main(void) {
     int cannon_y_my_on_line = 0;
     int cannon_count = 0;
     int distance = 0;
+    int flag_is_once = 0;
     goToY(s, move_to_y);
 
     while(1){
@@ -235,15 +236,22 @@ int main(void) {
         if (my_cannon > 2) {
             enemy_y = searchEnemy(s);
             if (enemy_y != -1) {
-                // int range = (enemy_y - pre_enemy_y) > 0 ? 350: -350;
-                int range = 0;
-                attackToY(s, enemy_y+range);
-                Sleep(900);
-                attackToY(s, enemy_y+100+range);
-                Sleep(1000);
-                attackToY(s, enemy_y-100+range);
+                if (flag_is_once) {
+                    int range = (enemy_y - pre_enemy_y) > 0 ? (enemy_y - pre_enemy_y): (pre_enemy_y - enemy_y);
+                    attackToY(s, enemy_y+range);
+                    Sleep(900);
+                    attackToY(s, enemy_y+100+range);
+                    Sleep(1000);
+                    attackToY(s, enemy_y-100+range);
+                    flag_is_once = 0;
+                }
+                flag_is_once = 1;
+            } else {
+                flag_is_once = 0;
             }
             pre_enemy_y = enemy_y;
+        } else {
+            flag_is_once = 0;
         }
         if (my_hp < pre_my_hp) {
             flag_is_attacked = 1;
